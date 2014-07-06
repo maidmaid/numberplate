@@ -4,11 +4,14 @@ namespace NumberPlate;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
+use InvalidArgumentException;
 use Symfony\Component\DomCrawler\Crawler;
+use Symfony\Component\EventDispatcher\EventDispatcher;
+use Symfony\Component\EventDispatcher\GenericEvent;
 	
 class Searcher
 {
-	/* @var $dispatcher \Symfony\Component\EventDispatcher\EventDispatcher */
+	/* @var $dispatcher EventDispatcher */
 	private $dispatcher;
 	
 	/* @var $client Client */
@@ -21,7 +24,7 @@ class Searcher
 	{
 		$this->client = new Client();
 		$this->jar = new CookieJar();
-		$this->dispatcher = new \Symfony\Component\EventDispatcher\EventDispatcher();
+		$this->dispatcher = new EventDispatcher();
 	}
 	
 	public function getDispatcher()
@@ -37,7 +40,7 @@ class Searcher
 		if($this->jar->count() == 0)
 		{
 			$this->client->get('http://www.vs.ch/cari-online/rechDet', $options);
-			$this->dispatcher->dispatch('cookie.initialize');
+			$this->dispatcher->dispatch('cookie.initialize', new GenericEvent($this->jar->toArray()));
 		}
 
 		// Traite le captcha
@@ -51,7 +54,7 @@ class Searcher
 			
 			// Decode captcha
 			$captchaVal = Captcha::decode('captcha.png');
-			$this->dispatcher->dispatch('captcha.decode');
+			$this->dispatcher->dispatch('captcha.decode', new GenericEvent($captchaVal));
 		}
 
 		// Envoie la recherche
@@ -65,7 +68,7 @@ class Searcher
 			'valider' => 'Continuer'
 		);
 		$response = $this->client->post('http://www.vs.ch/cari-online/rechDet', $options);
-		$this->dispatcher->dispatch('search.send');
+		$this->dispatcher->dispatch('search.send', new GenericEvent($response));
 
 		// Crawler
 		$html = $response->getBody()->__toString();
@@ -76,9 +79,9 @@ class Searcher
 		try
 		{
 			$error = trim($crawler->filter('#idDivError')->text());
-			$this->dispatcher->dispatch('error.return');
+			$this->dispatcher->dispatch('error.return', new GenericEvent($error));
 		}
-		catch(\InvalidArgumentException $e)
+		catch(InvalidArgumentException $e)
 		{
 
 		}
