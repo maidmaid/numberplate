@@ -20,8 +20,11 @@ class Searcher
 	/* @var $jar CookieJar */
 	private $jar;
 	
+	private $lastError;
+	
 	public function __construct()
 	{
+		$this->lastError = '';
 		$this->client = new Client();
 		$this->jar = new CookieJar();
 		$this->dispatcher = new EventDispatcher();
@@ -34,6 +37,11 @@ class Searcher
 	public function getDispatcher()
 	{
 		return $this->dispatcher;
+	}
+	
+	public function getLastError()
+	{
+		return $this->lastError;
 	}
 	
 	public function search($numberPlate)
@@ -79,6 +87,7 @@ class Searcher
 		$crawler = new Crawler($html);
 
 		// Traitements des erreurs
+		$data = array();
 		$e = count($e = $crawler->filter('#idDivError')) ? $e->text() : '';
 		$error = utf8_decode(trim($e));
 		if(empty($error))
@@ -100,6 +109,7 @@ class Searcher
 		}
 		else
 		{
+			$this->lastError = $error;
 			$this->dispatcher->dispatch('error.return', new GenericEvent($error));
 			
 			if(strpos($error, 'Code incorrect') !== false)
