@@ -27,6 +27,10 @@ class Searcher
 		$this->dispatcher = new EventDispatcher();
 	}
 	
+	/**
+	 * 
+	 * @return EventDispatcher
+	 */
 	public function getDispatcher()
 	{
 		return $this->dispatcher;
@@ -75,25 +79,15 @@ class Searcher
 		$crawler = new Crawler($html);
 
 		// Traitements des erreurs
-		$error = '';
-		try
-		{
-			$error = trim($crawler->filter('#idDivError')->text());
-			$this->dispatcher->dispatch('error.return', new GenericEvent($error));
-		}
-		catch(InvalidArgumentException $e)
-		{
-
-		}
-
-		// Extrait les données
-		$name = '';
+		$error = count($e = $crawler->filter('#idDivError')) ? trim($e->text()) : '';
 		if(empty($error))
 		{
-			$name = trim($crawler->filter('table')->eq(5)->filter('tr')->eq(3)->filter('td')->eq(1)->text());
+			$name = count($n = $crawler->filter('table')->eq(5)->filter('tr')->eq(3)->filter('td')->eq(1)) ? trim($n->text()) : '';
 		}
 		else
 		{
+			$this->dispatcher->dispatch('error.return', new GenericEvent($error));
+			
 			if(strpos($error, 'Code incorrect') !== false)
 			{
 				$name = $this->search($numberPlate);
