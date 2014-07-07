@@ -4,7 +4,6 @@ namespace NumberPlate;
 
 use GuzzleHttp\Client;
 use GuzzleHttp\Cookie\CookieJar;
-use InvalidArgumentException;
 use Symfony\Component\DomCrawler\Crawler;
 use Symfony\Component\EventDispatcher\EventDispatcher;
 use Symfony\Component\EventDispatcher\GenericEvent;
