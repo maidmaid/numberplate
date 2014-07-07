@@ -79,10 +79,24 @@ class Searcher
 		$crawler = new Crawler($html);
 
 		// Traitements des erreurs
-		$error = count($e = $crawler->filter('#idDivError')) ? trim($e->text()) : '';
+		$e = count($e = $crawler->filter('#idDivError')) ? $e->text() : '';
+		$error = utf8_decode(trim($e));
 		if(empty($error))
 		{
-			$name = count($n = $crawler->filter('table')->eq(5)->filter('tr')->eq(3)->filter('td')->eq(1)) ? trim($n->text()) : '';
+			$lines = $crawler->filter('table')->eq(5)->filter('tr');
+			
+			$filter = function($line) use(&$lines) {
+				$r = count($r = $lines->eq($line)->filter('td')->eq(1)) ? $r->text() : '';
+				return utf8_decode(trim($r));
+			};
+			
+			$data['numberplate'] = $filter(0);
+			$data['category'] = $filter(1);
+			$data['subcategory'] = $filter(2);
+			$data['name'] = $filter(3);
+			$data['address'] = $filter(4);
+			$data['complement'] = $filter(5);
+			$data['locality'] = $filter(6);
 		}
 		else
 		{
@@ -90,10 +104,10 @@ class Searcher
 			
 			if(strpos($error, 'Code incorrect') !== false)
 			{
-				$name = $this->search($numberPlate);
+				$data = $this->search($numberPlate);
 			}
 		}
 		
-		return $name;
+		return $data;
 	}	
 }

@@ -13,8 +13,8 @@ class SearcherTest extends PHPUnit_Framework_TestCase
 	public function testSearch()
 	{
 		$searcher = new Searcher();
-		$name = $searcher->search('77729');
-		$this->assertNotEmpty($name);
+		$data = $searcher->search('77729');
+		$this->assertNotEmpty($data);
 	}
 	
 	public function testEvents()

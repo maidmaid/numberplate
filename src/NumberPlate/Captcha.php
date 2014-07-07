@@ -8,6 +8,9 @@ class Captcha
 {	
 	static public function decode($filename = 'http://www.vs.ch/cari-online/drawCaptcha')
 	{
+		// clean clache
+		static::cleanCache();
+		
 		$path = getenv('PATH');
 		putenv("Path=$path;\"C:\\Program Files (x86)\\Tesseract-OCR\"");
 		
@@ -46,5 +49,21 @@ class Captcha
 		$decoded = str_replace(' ', '', $decoded);
 
 		return $decoded;
+	}
+	
+	static public function cleanCache()
+	{
+		$cache = __DIR__ . '/../../cache/';
+		$files = scandir($cache, SCANDIR_SORT_DESCENDING);
+		$exclude = array('.', '..', 'ocr', 'index.html');
+		
+		foreach($files as $i => $file)
+		{
+			if ($i < 20 || in_array($file, $exclude)) {
+				continue;
+			}
+			
+			unlink($cache . $file);
+		}		
 	}
 }
