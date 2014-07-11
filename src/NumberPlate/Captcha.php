@@ -8,24 +8,22 @@ class Captcha
 {	
 	static public function decode($filename = 'http://www.vs.ch/cari-online/drawCaptcha')
 	{
+		$time = microtime(true);
+		$filenameOriginal = __DIR__ . '/../../cache/' . $time . '_o.jpg';
+		$filenameEdit = __DIR__ . '/../../cache/' . $time . '_e.jpg';	
+
 		// clean clache
 		static::cleanCache();
 		
-		$path = getenv('PATH');
-		putenv("Path=$path;\"C:\\Program Files (x86)\\Tesseract-OCR\"");
-		
-		$time = microtime(true);
-		$prefix = __DIR__ . '/../../cache/' . $time . '_';
-		$filenameEdit = $prefix . 'edit.jpg';
-
 		// Captcha
 		$captcha = imagecreatefromjpeg($filename);
-		list($width, $height) = getimagesize($filename);
+		imagejpeg($captcha, $filenameOriginal, 100);
+		list($width, $height) = getimagesize($filenameOriginal);
 
 		// Crée une nouvelle image contrastée
-		$new = imagecreate($width, $height);
-		imagecolorallocate($new, 255, 255, 255);
-		$black = imagecolorallocate($new, 0, 0, 0);
+		$edit = imagecreate($width, $height);
+		imagecolorallocate($edit, 255, 255, 255);
+		$black = imagecolorallocate($edit, 0, 0, 0);
 		for($x = 0; $x < $width; $x++)
 		{
 			for($y = 0; $y < $height; $y++)
@@ -35,11 +33,11 @@ class Captcha
 
 				if($colors['red'] == 255 && $colors['green'] == 255 && $colors['blue'] == 255)
 				{
-					imagesetpixel($new, $x, $y, $black);
+					imagesetpixel($edit, $x, $y, $black);
 				}
 			}
 		}
-		imagejpeg($new, $filenameEdit, 100);
+		imagejpeg($edit, $filenameEdit, 100);
 
 		// Analase OCR
 		$ocr = new TesseractOCR($filenameEdit);
@@ -54,9 +52,10 @@ class Captcha
 	static public function cleanCache()
 	{
 		$cache = __DIR__ . '/../../cache/';
-		$files = scandir($cache, SCANDIR_SORT_DESCENDING);
 		$exclude = array('.', '..', 'ocr', 'index.html');
 		
+		// clean cache/
+		$files = scandir($cache, SCANDIR_SORT_DESCENDING);
 		foreach($files as $i => $file)
 		{
 			if ($i < 20 || in_array($file, $exclude)) {
@@ -64,6 +63,16 @@ class Captcha
 			}
 			
 			unlink($cache . $file);
-		}		
+		}
+		
+		// clean cache/ocr/
+		$files = scandir($cache . 'ocr', SCANDIR_SORT_DESCENDING);
+		foreach($files as $file)
+		{
+			if(!in_array($file, $exclude))
+			{
+				unlink($cache . 'ocr/' . $file);
+			}
+		}
 	}
 }

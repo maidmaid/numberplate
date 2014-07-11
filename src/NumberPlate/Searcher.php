@@ -66,6 +66,7 @@ class Searcher
 			// Decode captcha
 			$captchaVal = Captcha::decode('captcha.png');
 			$this->dispatcher->dispatch('captcha.decode', new GenericEvent($captchaVal));
+			unlink('captcha.png');
 		}
 
 		// Envoie la recherche
